@@ -1,0 +1,48 @@
+version: "3"
+
+services:
+  pp-socat-bridge:
+    image: sabershahhoseini/pp-socat-bridge:v0.1
+    network_mode: host
+    restart: always
+    environment:
+      - PORT=6668
+  pp-sshforward-bridge:
+    image: sabershahhoseini/pp-sshforward-bridge:v0.1
+    network_mode: host
+    restart: always
+    environment:
+      - PORT=6668
+      - SERVER_IP=<SERVER_IP>
+      - SSH_PORT=9011
+      - SSH_USER=root
+    volumes:
+      - "./ssh-keys/:/ssh-keys"
+  pp-sshsocks-bridge:
+    image: sabershahhoseini/pp-sshsocks-bridge:v0.3
+    restart: always
+    network_mode: host
+    volumes:
+      - "./ssh-keys/:/ssh-keys"
+    environment:
+      - PORT=6668
+      - SERVER_IP=<SERVER_IP>
+      - SSH_PORT=9011
+      - SSH_USER=root
+      - SSH_BIND_PORT=12732
+
+  pp-tun2socks-bridge:
+    image: sabershahhoseini/pp-tun2socks-bridge:v0.3
+    network_mode: host
+    devices:
+      - "/dev/net/tun:/dev/net/tun"
+    privileged: true
+    volumes:
+      - "./wireguard/:/etc/wireguard"
+    environment:
+      - INTERFACE=eth0
+      - TUN_INTERFACE=tun0
+      - TUN_IP=10.10.10.10
+      - TABLE=125
+      - WG_SUBNET=10.100.100.0/24
+      - SSH_BIND_PORT=12732
